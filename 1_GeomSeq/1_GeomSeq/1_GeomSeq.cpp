@@ -37,9 +37,6 @@ int main()
     return 0;
 }
 
-
-
-
 Triple findTriple(float product, float sum)
 {
     float x1, x2, q, delta1, delta2;
@@ -52,9 +49,9 @@ Triple findTriple(float product, float sum)
     else if (delta1==0 || delta2==0)
     {
         x1 = (-x2 + sum) / 2;
-        q = x2 / x1;
-        if (x1 >= x2*q)
-            return Triple(x1, x2, x2 * q);
+        //q = x2 / x1;
+        if (x1 >= x2*x2/x1)
+            return Triple(x1, x2, x2 * x2 / x1);
         else
             return Triple(0, 0, 0);
     }
@@ -62,14 +59,14 @@ Triple findTriple(float product, float sum)
     {
         float delta = sqrt(delta1)*sqrt(delta2);
         x1 = (-x2 + sum - delta) / 2;
-        q = x2 / x1;
-        if (x1 >= x2 * q)
-            return Triple(x1, x2, x2 * q);
+        //q = x2 / x1;
+        if (x1 >= x2 * x2 / x1)
+            return Triple(x1, x2, x2 * x2 / x1);
 
         x1 += delta;
-        q = x2 / x1;
-        if (x1 >= x2 * q)
-            return Triple(x1, x2, x2 * q);
+        //q = x2 / x1;
+        if (x1 >= x2 * x2 / x1)
+            return Triple(x1, x2, x2 * x2 / x1);
         else
             return Triple(0, 0, 0);
     }
