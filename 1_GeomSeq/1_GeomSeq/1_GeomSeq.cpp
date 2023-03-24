@@ -6,25 +6,31 @@
 
 using namespace std;
 
+
 struct Triple
 {
     float x1, x2, x3;
     Triple(float x1_, float x2_, float x3_) : x1{ x1_ }, x2{ x2_ }, x3{ x3_ } {}
 };
 
-ostream& operator<< (ostream& out, const Triple& triple)
+inline ostream& operator<< (ostream& out, const Triple& triple)
 {
     return (out << triple.x1 << ' ' << triple.x2 << ' ' << triple.x3);
 }
 
-Triple findTriple(float product, float sum);
+inline short sign(const float x)
+{
+    return x>0  ?  1  :  (x<0 ? -1 : 0);
+}
+
+const Triple findTriple(float product, float sum);
+
 
 int main()
 {
     int N;
     float x1, x2, x3;
     float sum, product;
-
 
     cin >> N;
 
@@ -37,37 +43,34 @@ int main()
     return 0;
 }
 
-Triple findTriple(float product, float sum)
+const Triple findTriple(float product, float sum)
 {
-    float x1, x2, q, delta1, delta2;
-    x2 = cbrt(product);
-
-    delta1 = (x2 + sum);
-    delta2 = (sum - 3 * x2);
-    if ((delta1<0 && delta2>0)  ||  (delta1>0 && delta2<0))
+    if(product == 0)
         return Triple(0, 0, 0);
-    else if (delta1==0 || delta2==0)
+
+    float x1, x2, x3;
+    x2 = cbrtf(product);
+
+    float delta1 = sum + x2;
+    float delta2 = sum - 3 * x2;
+    float sgn1 = sign(delta1);
+    float sgn2 = sign(delta2);
+
+    if (sgn1 * sgn2 == -1)
+        return Triple(0, 0, 0);
+    else if (sgn1 * sgn2 == 0)
     {
-        x1 = (-x2 + sum) / 2;
-        //q = x2 / x1;
-        if (x1 >= x2*x2/x1)
-            return Triple(x1, x2, x2 * x2 / x1);
-        else
-            return Triple(0, 0, 0);
+        x1 = (sum - x2)/2;
+        x3 = sum - x2 - x1;
+        return Triple(x1,x2,x3);
     }
     else
     {
-        float delta = sqrt(delta1)*sqrt(delta2);
-        x1 = (-x2 + sum - delta) / 2;
-        //q = x2 / x1;
-        if (x1 >= x2 * x2 / x1)
-            return Triple(x1, x2, x2 * x2 / x1);
+        float delta = sqrtf(sgn1*delta1)*sqrtf(sgn2*delta2);
 
-        x1 += delta;
-        //q = x2 / x1;
-        if (x1 >= x2 * x2 / x1)
-            return Triple(x1, x2, x2 * x2 / x1);
-        else
-            return Triple(0, 0, 0);
+        x1 = (sum-x2 - sign(x2-sum)*delta) / 2; // Przemnozenie przez znak wspolczynniki b pomaga uniknac odejmowania dwoch bliskich liczb.
+        x3 = x2*x2/x1; // Dwa rozwiazania sa tozsame z naszymi x1 i x3.
+
+        return (x1 < x3)  ?  Triple(x3,x2,x1) : Triple(x1,x2,x3);
     }
 }
