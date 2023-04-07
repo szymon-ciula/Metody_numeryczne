@@ -1,4 +1,4 @@
-﻿#include "source.cpp"  
+﻿#include "source.h"  
 #include <iostream>
 #include <cmath>
 
@@ -7,7 +7,7 @@ using namespace std;
 double wielomian(double x)			{ 	return (((x-6)*x+11)*x)-6;	}
 double wielomianSinExp(double x)	{	return ((((x-6)*x+11)*x)-4 + sin(15*x))*exp(-x*x);	}
 double kwadrat(double x)			{	return (x*x-2);	 }
-double kwadrat100(double x)			{  return 1e100*(x*x-2);	}
+double kwadrat100(double x)			{   return 1e100*(x*x-2);	}
 double kwadrat_10(double x)			{ 	return 1e-10*(x*x-2);	}
 
 int main(){
