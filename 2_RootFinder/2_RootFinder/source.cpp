@@ -1,10 +1,6 @@
 //Szymon Ciula
 
-inline double abso(double x) { return (x<0 ? -x : x); }
-inline short sgn(double x) { return x<0 ? -1 : 1; }
-inline bool inEps(double a, double b, double eps) { return abso(b-a) < eps; }
-inline bool inDelta(double fx, double delta) { return abso(fx)<=delta; }
-inline bool inInterval(double x, double a, double b) { return (a<b) ? (a<x && x<b) : (b<x && x<a); }
+#include "source.h"
 
 void swap(double& a, double& b)
 {
@@ -25,13 +21,13 @@ void bisection(
 
     if (sgn(mid_value) == sgn(fa))
     {
-        a = (a + b) / 2;
         fa = mid_value;
+        a = (a + b) / 2;
     }
     else
     {
-        b = (a + b) / 2;
         fb = mid_value;
+        b = (a + b) / 2;
     }
 }
 
@@ -45,7 +41,6 @@ void secant(
 {
     double x = b;
     double fx = fb;
-    //b = (fb * a - fa * b) / (fb - fa);
     b = b - (fb*(b-a))/(fb-fa);
     fb = f(b);
     a = x;
@@ -61,107 +56,32 @@ double findZero(
     double delta          // wystarczaj¹cy b³¹d bezwzglêdny wyniku
 )
 {
+    // Sprawdzenie czy kraniec nie jest miejscem zerowym.
     double fa = f(a);
-    if(inDelta(fa, delta))
+    if(inEps(fa, eps))
         return a;
     double fb = f(b);
-    if(inDelta(fb, delta))
+    if(inEps(fb, eps))
         return b;
-    double x, fx, fprev = fa, mid, temp, ftemp;
-    int count = 2;
-    
+    // Wywolujemy metode siecznych dopoki nie bedziemy mogli wywolac metody bisekcji.
     while (sgn(fa) * sgn(fb) > 0)
     {
         secant(f,a,b,fa,fb);
-        count++;
-        if(inEps(a,b,eps) || inDelta(fb,delta))
-            return count;//b;
+        if(inDelta(a,b,delta) || inEps(fb,eps))
+            return b;
     }
-
-    while (!(inEps(a,b,eps) || inDelta(fb,delta)))
-    {
-        mid = (b + a) / 2;
-        if (fb != fprev)
-            x = b - (fb * (b - a)) / (fb - fa);
-        else
-            x = mid;
-        if (inInterval(x, mid, b))
-        {
-            temp = b;
-            ftemp = fb;
-            b = x;
-            fb = f(b);
-        }
-        else
-        {
-            temp = b;
-            ftemp = fb;
-            b = mid;
-            fb = f(b);
-        }
-        if (sgn(fa) * sgn(fb) >= 0)
-        {
-            a = temp;
-            fa = ftemp;
-        }
-        if (abso(fa) < abso(fb))
-        {
-            swap(a, b);
-            swap(fa, fb);
-        }
-        count++;
-    }
-
-    /*do
-    {
-        count++;
-        x = b - (fb*(b-a))/(fb-fa);
-        if (inInterval(x, b, (a + b) / 2))
-        {
-            a = b;
-            fa = fb;
-            b = x;
-            fb = f(x);
-        }
-        else
-        {
-            bisection(f, a, b, fa, fb);
-            if(inDelta(fa,delta))
-                return count;//a;
-        }
-    } while(!(inEps(a,b,eps) || inDelta(fb,delta)));*/
-
-    //while (/*abso(a - b) > (1 >> 5) && */count <= M)
-    /* {
+    constexpr double edge = 0.0625;
+    // Wywolujemy metode bisekcji dopoki wielkosc kroku nie bedzie mniejsza niz pewna stala.
+    while( abso(b-a) > edge )
         bisection(f,a,b,fa,fb);
-        count++;
-        
-        if(inDelta(fb, delta))
-            return count;//b;
-        else if(inDelta(fa, delta))
-            return count;//a;
-        else if(inEps(a,b,eps))
-            return count;//(a+b)/2;
-    }
 
-    while (!(inEps(a,b,eps) || inDelta(fb,delta)))
+    // Wywolujemy metode siecznych az do uzyskania odpowiedniej dokladnosci.
+    while (!(inEps(fb, eps) || inDelta(a, b, delta)))
     {
-        x = b - (fb*(b-a))/(fb-fa);
-        count++;
-        if (!inInterval(x, a, b))
-        {
-            a = b;
-            fa = fb;
-            b = x;
-            fb = f(x);
-        }
-        else
-        {
-            bisection(f, a, b, fa, fb);
-            if(inDelta(fa,delta))
-                return count;//a;
-        }
-    }*/
+        if(inEps(fa,eps))
+            return a;
+        secant(f,a,b,fa,fb);
+    }
 
     return b;
 }
