@@ -76,13 +76,13 @@ int main()
     int i = findCurve(implicitCurve,x2,10,3./32);
     printf("%d",i);
 
-    printf("\n------------------- test 2 ----------------------\n");
+    /*printf("\n------------------- test 2 ----------------------\n");
     double x3[3] = {0.25*(1.+sqrt(5.)),0.25*(1.-sqrt(5.)),0.5};
-    findSurface(implicitSurface,x3,4,4,1./32,1./32);
+    findSurface(implicitSurface,x3,4,4,1./32,1./32);*/
 
-    printf("\n------------------- test 3 ----------------------\n");
+    /*printf("\n------------------- test 3 ----------------------\n");
     double x4[4] = {-1.2807764064044151, -0.6403882032022076, 1.0000000000000000, 0.50000000000000000};
-    findFixedPoints(henon,x4,4,4,1./16,1./16);
+    findFixedPoints(henon,x4,4,4,1./16,1./16);*/
 
     return 0;
 }
