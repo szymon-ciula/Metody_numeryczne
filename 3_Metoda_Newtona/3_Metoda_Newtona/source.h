@@ -6,6 +6,7 @@ constexpr double absolute_error = 1e-14;
 double abso(double x) { return x<0 ? -x : x; }
 double max2(double x, double y) { return x>=y ? x : y; }
 bool inAbsErr(const double x) { return abso(x)<absolute_error; }
+bool solveEquation2D(const double* coeffs, double* solution);
 
 /*
 *   @param
