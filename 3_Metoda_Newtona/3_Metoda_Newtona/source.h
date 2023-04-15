@@ -7,7 +7,20 @@ inline double abso(double x) { return x<0 ? -x : x; }
 inline double max2(double x, double y) { return x>=y ? x : y; }
 inline bool inAbsErr(const double x) { return abso(x)<absolute_error; }
 
+/* Prints vector x of length N. */
+void printVector(const double* x, unsigned N);
+
+/*
+    @return
+    true - if matrix is reversible
+*/
 bool reverseMatrix2D(double* A);
+
+/*
+  Dimensions:
+    A - 2x2
+    B - 2x1
+*/
 void multiplyMatrix(const double* A, const double* B, double* C);
 
 /*
@@ -111,4 +124,3 @@ int findSurface(FuncPointer f, double* x, unsigned k1, unsigned k2, double h1, d
 */
 int findFixedPoints(FuncPointer f, double* x, unsigned k1, unsigned k2, double h1, double h2);
 
-void printVector(const double* x, unsigned N);
