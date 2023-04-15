@@ -58,32 +58,35 @@ bool solveEquation2D(const double* coeffs, double* solution)
 */
 int findCurve(FuncPointer f, double* x, unsigned k, double h)
 {
-    double* solutions = new double[3];
-    double* fx = new double[2];
-    double* prev = new double[2];
-    double* Df = new double[6];
+    double solutions[3];
+    double fx[2];
+    double Df[6];
+    double d[2];
 
+    solutions[2] = x[2];
     for (int i = 1; i <= k; ++i)
     {
-        x[2] += h;
+        solutions[0] = x[0];
+        solutions[1] = x[1];
+        solutions[2] += h;
+        f(solutions, fx, Df);
+
         do
         {
-            f(x, fx, Df);
             Df[2] = -fx[0];
             Df[5] = -fx[1];
-            solutions[0] -= fx[0]*
+            if(solveEquation2D(Df, d))
+            {
+                solutions[0] += d[0];
+                solutions[1] += d[1];
+                f(solutions, fx, Df);
+            }
+            else
+                return i;
         } while(inAbsErr( max2(fx[0],fx[1]) ));
+
+        printVector(solutions, 3);
     }
-
-    int error_on_index = -1;
-
-    //...
-
-    if (error_on_index != -1)
-        return error_on_index;
-
-    for(int i=1; i<=k; ++i)
-        std::cout << x[2] + i*h << '\n';
 
     return 0;
 }
