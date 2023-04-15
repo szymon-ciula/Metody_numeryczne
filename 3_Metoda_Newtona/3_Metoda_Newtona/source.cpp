@@ -13,28 +13,37 @@ void printVector(const double* x, unsigned N)
     printf("\n");
 }
 
-bool solveEquation2D(const double* coeffs, double* solution)
+void swap(double& a, double& b)
 {
-    if (coeffs[0] != 0)
+    double temp = a;
+    a = b;
+    b = temp;
+}
+
+bool reverseMatrix2D(double* A)
+{
+    double det = A[0]*A[3] - A[1]*A[2];
+    if (det != 0)
     {
-        double a, b; // zmienne pomocnicze
-        a = -coeffs[3]/coeffs[0];
-        if((b = coeffs[1] * a + coeffs[5]) == 0)
-            return false;
-        solution[1] = (coeffs[2]*a + coeffs[5]) / b;
-        solution[0] = (coeffs[2] - solution[1]*coeffs[1]) / coeffs[0];
+        det = 1/det;
+        A[3] = det*A[3];
+        A[1] = -det*A[1];
+        A[2] = -det*A[2];
+        A[0] = det*A[0];
+        swap(A[0],A[3]);
         return true;
     }
-    else if (coeffs[1] != 0)
-    {
-        solution[1] = coeffs[2]/coeffs[1];
-        if(coeffs[4] == 0)
-            return false;
-        solution[0] = (coeffs[5] - solution[1]*coeffs[4]) / coeffs[4];
-        return true;
-    }
-    else
-        return false;
+    return false;
+}
+
+/*
+    A - 2x2
+    B - 2x1
+*/
+void multiplyMatrix(const double* A, const double* B, double* C)
+{
+    C[0] = A[0]*B[0] + A[1]*B[1];
+    C[1] = A[2]*B[0] + A[3]*B[1];
 }
 
 /*
@@ -61,7 +70,7 @@ int findCurve(FuncPointer f, double* x, unsigned k, double h)
     double solutions[3];
     double fx[2];
     double Df[6];
-    double d[2];
+    double C[2];
 
     solutions[2] = x[2];
     for (int i = 1; i <= k; ++i)
@@ -70,20 +79,20 @@ int findCurve(FuncPointer f, double* x, unsigned k, double h)
         solutions[1] = x[1];
         solutions[2] += h;
         f(solutions, fx, Df);
-
         do
         {
-            Df[2] = -fx[0];
-            Df[5] = -fx[1];
-            if(solveEquation2D(Df, d))
+            Df[2] = Df[3];
+            Df[3] = Df[4];
+            if (reverseMatrix2D(Df))
             {
-                solutions[0] += d[0];
-                solutions[1] += d[1];
+                multiplyMatrix(Df,fx,C);
+                solutions[0] -= C[0];
+                solutions[1] -= C[1];
                 f(solutions, fx, Df);
             }
             else
                 return i;
-        } while(inAbsErr( max2(fx[0],fx[1]) ));
+        } while( !(inAbsErr( max2(fx[0],fx[1]) )) );
 
         printVector(solutions, 3);
     }

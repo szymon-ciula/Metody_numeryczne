@@ -3,10 +3,12 @@
 constexpr double relative_error = 1e-6;
 constexpr double absolute_error = 1e-14;
 
-double abso(double x) { return x<0 ? -x : x; }
-double max2(double x, double y) { return x>=y ? x : y; }
-bool inAbsErr(const double x) { return abso(x)<absolute_error; }
-bool solveEquation2D(const double* coeffs, double* solution);
+inline double abso(double x) { return x<0 ? -x : x; }
+inline double max2(double x, double y) { return x>=y ? x : y; }
+inline bool inAbsErr(const double x) { return abso(x)<absolute_error; }
+
+bool reverseMatrix2D(double* A);
+void multiplyMatrix(const double* A, const double* B, double* C);
 
 /*
 *   @param
