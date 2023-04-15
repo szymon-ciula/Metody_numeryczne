@@ -1,14 +1,30 @@
 #pragma once
 
-constexpr double relative_error = 1e-6;
-constexpr double absolute_error = 1e-14;
+#include <stdio.h>
+#include <math.h>
+
+const double relative_error = 1e-6;
+const double absolute_error = 1e-14;
+const double checkIter = 25;
 
 inline double abso(double x) { return x<0 ? -x : x; }
 inline double max2(double x, double y) { return x>=y ? x : y; }
 inline bool inAbsErr(const double x) { return abso(x)<absolute_error; }
 
+/*
+*   @param
+    x - tablica dlugosci N, okreslajaca wektor, dla ktorego liczona jest wartosc funkcji
+    y - tablica dlugosci M, do ktorej funkcja wpisze obliczone f(x). Funkcja zaklada, ze tablica y ma co najmniej M elementow!
+    Df - tablica dlugosci M*N, do ktorej funkcja wpisze obliczona macierz rozniczki Df(x). Funkcja zaklada, ze tablica Df ma co najmniej N*M elementow!
+
+    Macierze beda reprezentowane jako jednowymiarowe tablice. Wiersze macierzy beda ukladane w tablicy jeden za drugim.
+*/
+typedef void (*FuncPointer)(const double* x, double* y, double* Df);
+
 /* Prints vector x of length N. */
 void printVector(const double* x, unsigned N);
+
+void swap(double& a, double& b);
 
 /*
     @return
@@ -22,16 +38,6 @@ bool reverseMatrix2D(double* A);
     B - 2x1
 */
 void multiplyMatrix(const double* A, const double* B, double* C);
-
-/*
-*   @param
-    x - tablica dlugosci N, okreslajaca wektor, dla ktorego liczona jest wartosc funkcji
-    y - tablica dlugosci M, do ktorej funkcja wpisze obliczone f(x). Funkcja zaklada, ze tablica y ma co najmniej M elementow!
-    Df - tablica dlugosci M*N, do ktorej funkcja wpisze obliczona macierz rozniczki Df(x). Funkcja zaklada, ze tablica Df ma co najmniej N*M elementow!
-
-    Macierze beda reprezentowane jako jednowymiarowe tablice. Wiersze macierzy beda ukladane w tablicy jeden za drugim.
-*/
-typedef void (*FuncPointer)(const double* x, double* y, double* Df);
 
 /*
     Funkcja ma obliczyc i wydrukowac na ekran wybrane punkty x1,x2,...,xk spelniajace rownanie:     f(xi)=(f1(xi),f2(xi))=(0,0)

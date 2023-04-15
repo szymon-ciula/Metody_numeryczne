@@ -1,10 +1,6 @@
 // Szymon Ciula
 
-#include <cstdio>
-#include <iostream>
 #include "source.h"
-
-using namespace std;
 
 void printVector(const double* x, unsigned N)
 {
@@ -44,8 +40,10 @@ void multiplyMatrix(const double* A, const double* B, double* C)
 
 int findCurve(FuncPointer f, double* x, unsigned k, double h)
 {
+    unsigned iter;
     double solutions[3];
     double fx[2];
+    double prev;
     double Df[6];
     double C[2];
 
@@ -56,6 +54,8 @@ int findCurve(FuncPointer f, double* x, unsigned k, double h)
         solutions[1] = x[1];
         solutions[2] += h;
         f(solutions, fx, Df);
+        prev = max2(abso(fx[0]),abso(fx[1]));
+        iter = 0;
         do
         {
             Df[2] = Df[3];
@@ -66,10 +66,18 @@ int findCurve(FuncPointer f, double* x, unsigned k, double h)
                 solutions[0] -= C[0];
                 solutions[1] -= C[1];
                 f(solutions, fx, Df);
+
+                if (++iter == checkIter)
+                {
+                    if ( max2(abso(fx[0]), abso(fx[1]))  >  prev )
+                        return i;
+                    prev = max2(abso(fx[0]), abso(fx[1]));
+                    iter = 0;
+                }
             }
             else
                 return i;
-        } while( !(inAbsErr( max2(fx[0],fx[1]) )) );
+        } while( !(inAbsErr( max2(abso(fx[0]), abso(fx[1])) )) );
 
         printVector(solutions, 3);
     }
@@ -79,6 +87,8 @@ int findCurve(FuncPointer f, double* x, unsigned k, double h)
 
 int findSurface(FuncPointer f, double* x, unsigned k1, unsigned k2, double h1, double h2)
 {
+    unsigned iter;
+    double prev;
     double solutions[3];
     double fx[1];
     double Df[3];
@@ -93,16 +103,26 @@ int findSurface(FuncPointer f, double* x, unsigned k1, unsigned k2, double h1, d
             solutions[0] = x[0];
             solutions[2] += h2;
             f(solutions, fx, Df);
+            iter = 0;
+            prev = *fx;
             do
             {
                 if (Df[0] != 0)
                 {
                     solutions[0] -= *fx / Df[0];
                     f(solutions, fx, Df);
+
+                    if (++iter == checkIter)
+                    {
+                        if ( *fx > prev )
+                            return i*k1+j;
+                        prev = *fx;
+                        iter = 0;
+                    }
                 }
                 else
                     return i*k1+j;
-            } while( !(inAbsErr( *fx )) );
+            } while( !(inAbsErr( *fx )));
 
             printVector(solutions, 3);
         }
@@ -112,42 +132,10 @@ int findSurface(FuncPointer f, double* x, unsigned k1, unsigned k2, double h1, d
     return 0;
 }
 
-/*
-    W tej funkcji zakladamy, ze f:R4 -> R2. Nazwijmy zmienne funkcji f kolejno x,y,a,b.
-    Przy ustalonej wartosci ostatnich dwoch zmiennych a,b jest to funkcja fa,b:R2 ->R2, ktora moze miec izolowany punkt staly.
-    Zadaniem jest obliczenie i wydrukowanie wektorow (x,y,a,b), dla ktorych f(x,y,a,b) = fa,b(x,y)=(x,y) z dokladnoscia |fa,b(x,y)-(x,y)|<=10e-14 w normie maximum.
-
-    Argumentami funkcji findFixedPoints sa
-    f - wskaznik do funkcji R4 -> R2
-    x - tablica liczb double dlugosci 4, zawierajaca punkt poczatkowy spelniajacy warunek f(x[0],x[1],x[2],x[3])~=(x[0],x[1]))
-    k1,k2 - okreslaja liczby punktow do wyznaczenia
-    h1,h2 - kroki zmiany parametrow.
-    
-    Zadaniem jest obliczenie i wydrukowanie na ekran punktow stalych fa,b wraz z wartosciami a,b dla (a,b) kolejno rownych
-      (x[2]+h1,x[3]+h2)
-      (x[2]+h1,x[3]+2*h2)
-      ...
-      (x[2]+h1,x[3]+k2*h2)
-      (x[2]+2*h1,x[3]+h2)
-      (x[2]+2*h1,x[3]+2*h2)
-      ...
-      (x[2]+2*h1,x[3]+k2*h2)
-      ...
-      (x[2]+k1*h1,x[3]+h2)
-      (x[2]+k1*h1,x[3]+2*h2)
-       ...
-      (x[2]+k1*h1,x[3]+k2*h2)
-      
-
-    Dodatkowo, dla wiekszej czytelnosci wyjscia, po kazdym zestawie punktow z ustalona wartoscia b wstawiamy wolna linie. 
-
-    @return
-    jesli dla pewnego i=1,...,k1, j=1,...,k2 nie uda sie wyznaczyc punktu stalego funkcji fa,b dla parametrow a=x[2]+i*h1, b=x[3]+j*h2 z tolerancja absolutna 10e-14,
-    to nalezy zakonczyc dzialanie funkcji bez wypisywania blednego punktu stalego i zwrocic wartosc i*k1+j.
-    W przeciwnym przypadku zwracamy wartosc 0 oznaczajaca brak bledu.
-*/
 int findFixedPoints(FuncPointer f, double* x, unsigned k1, unsigned k2, double h1, double h2)
 {
+    unsigned iter;
+    double prev;
     double solutions[4];
     double fx[2];
     double Df[8];
@@ -156,16 +144,22 @@ int findFixedPoints(FuncPointer f, double* x, unsigned k1, unsigned k2, double h
     solutions[2] = x[2];
     for (unsigned i = 1; i <= k1; ++i)
     {
-        cout << "i=" << i << endl;
         solutions[2] += h1;
         solutions[3] = x[3];
         for (unsigned j = 1; j <= k2; ++j)
         {
-            cout << "\tj=" << j << endl;
             solutions[0] = x[0];
             solutions[1] = x[1];
             solutions[3] += h2;
             f(solutions, fx, Df);
+            // Modyfikujemy, bo szukamy punktu stalego.
+            Df[0] -= 1.;
+            Df[5] -= 1.;
+            fx[0] -= solutions[0];
+            fx[1] -= solutions[1];
+
+            iter = 0;
+            prev = max2(abso(fx[0]), abso(fx[1]));
             do
             {
                 Df[2] = Df[4];
@@ -176,10 +170,23 @@ int findFixedPoints(FuncPointer f, double* x, unsigned k1, unsigned k2, double h
                     solutions[0] -= C[0];
                     solutions[1] -= C[1];
                     f(solutions, fx, Df);
+
+                    Df[0] -= 1.;
+                    Df[5] -= 1.;
+                    fx[0] -= solutions[0];
+                    fx[1] -= solutions[1];
+
+                    if (++iter == checkIter)
+                    {
+                        if ( max2(abso(fx[0]), abso(fx[1])) > prev )
+                            return i*k1+j;
+                        prev = max2(abso(fx[0]), abso(fx[1]));
+                        iter = 0;
+                    }
                 }
                 else
                     return i*k1+j;
-            } while( !(inAbsErr( max2(fx[0]-solutions[0], fx[1]-solutions[1]))));
+            } while( !(inAbsErr(max2(abso(fx[0]), abso(fx[1])))) );
 
             printVector(solutions, 4);
         }
