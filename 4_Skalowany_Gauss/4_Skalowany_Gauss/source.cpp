@@ -12,6 +12,25 @@ void swap(double& a, double& b)
     b = temp;
 }
 
+Vector multiplyMatrixVector(const Matrix& M, const Vector& V, size_t n)
+{
+    Vector R(n);
+
+    for (size_t i = 0; i < n; ++i)
+    {
+        R[i] = M(i,0)*V[0];
+        for(size_t j = 1; j < n; ++j)
+            R[i] += M(i,j)*V[j];
+    }
+
+    return R;
+}
+
+void reverseTriangularMatrix(Matrix& M, size_t n)
+{
+    
+}
+
 Vector solveEquations(const Matrix & A0, const Vector & b, double  eps)
 {
     const size_t N = b.size();
@@ -63,7 +82,11 @@ Vector solveEquations(const Matrix & A0, const Vector & b, double  eps)
         }
     }
 
-    std::cout << A;
+    reverseTriangularMatrix(A, N);
+    Vector v(multiplyMatrixVector(A,b,N));
+
+
+
 
     return b;
 }
