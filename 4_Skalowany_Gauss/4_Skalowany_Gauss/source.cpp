@@ -28,7 +28,18 @@ Vector multiplyMatrixVector(const Matrix& M, const Vector& V, size_t n)
 
 void reverseTriangularMatrix(Matrix& M, size_t n)
 {
-    
+    for (size_t i = 0; i < n; ++i)
+        M(i,i) = 1/M(i,i);
+    for (size_t i = 0; i < n; ++i)
+    {
+        for (size_t j = i+1; j < n; ++j)
+        {
+            M(i,j) = M(i,j)*M(i,i);
+            for(size_t k = i+1; k < j; ++k)
+                M(i,j) += M(k,j)*M(i,k);
+            M(i,j) *= -M(j,j);
+        }
+    }
 }
 
 Vector solveEquations(const Matrix & A0, const Vector & b, double  eps)
@@ -82,10 +93,11 @@ Vector solveEquations(const Matrix & A0, const Vector & b, double  eps)
         }
     }
 
+    std::cout << A;
     reverseTriangularMatrix(A, N);
     Vector v(multiplyMatrixVector(A,b,N));
 
-
+    std::cout << v;
 
 
     return b;
