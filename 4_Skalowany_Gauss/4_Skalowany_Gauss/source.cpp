@@ -12,21 +12,38 @@ void swap(double& a, double& b)
     b = temp;
 }
 
-Vector multiplyMatrixVector(const Matrix& M, const Vector& V, size_t n)
+Vector operator*(const Matrix& M, const Vector& V)
 {
-    Vector R(n);
+    Vector R(V.size());
 
-    for (size_t i = 0; i < n; ++i)
+    for (size_t i = 0; i < V.size(); ++i)
     {
         R[i] = M(i,0)*V[0];
-        for(size_t j = 1; j < n; ++j)
+        for(size_t j = 1; j < V.size(); ++j)
             R[i] += M(i,j)*V[j];
     }
 
     return R;
 }
 
-void reverseTriangularMatrix(Matrix& M, size_t n)
+Matrix operator*(const Matrix& M, const Matrix& V)
+{
+    Matrix R(V.size());
+
+    for (size_t i = 0; i < V.size(); ++i)
+    {
+        for (size_t j = 0; j < V.size(); ++j)
+        {
+            R(i,j) = M(i, 0) * V(0,j);
+            for (size_t k = 1; k < V.size(); ++k)
+                 R(i, j) += M(i, k) * V(k,j);
+        }
+    }
+
+    return R;
+}
+
+void reverseTriangularUpMatrix(Matrix& M, size_t n)
 {
     for (size_t i = 0; i < n; ++i)
         M(i,i) = 1/M(i,i);
@@ -42,11 +59,35 @@ void reverseTriangularMatrix(Matrix& M, size_t n)
     }
 }
 
+void reverseTriangularLowMatrix(Matrix& M, size_t n)
+{
+    for (size_t i = 0; i < n; ++i)
+        M(i,i) = 1/M(i,i);
+    for (size_t i = 0; i < n; ++i)
+    {
+        for (size_t j = i+1; j < n; ++j)
+        {
+            M(i,j) = M(i,j)*M(j,j);
+            for(size_t k = j+1; k < i; ++k)
+                M(i,j) += M(k,j)*M(i,k);
+            M(i,j) *= -M(i,i);
+        }
+    }
+}
+
+Vector operator-(const Vector& a, const Vector& b)
+{
+    Vector v(a.size());
+    for(size_t i=0; i<a.size(); ++i)
+        v[i] = a[i]-b[i];
+    return v;
+}
+
 Vector solveEquations(const Matrix & A0, const Vector & b, double  eps)
 {
     const size_t N = b.size();
     Matrix A = A0;
-    double* S = new double[N];
+    Vector S(N);
 
     // Obliczamy norme kazdego wiersza.
     double maxx;
@@ -93,11 +134,13 @@ Vector solveEquations(const Matrix & A0, const Vector & b, double  eps)
         }
     }
 
-    std::cout << A;
-    reverseTriangularMatrix(A, N);
-    Vector v(multiplyMatrixVector(A,b,N));
+    std::cout << A << std::endl;
 
-    std::cout << v;
+    reverseTriangularLowMatrix(A, N);
+    //Vector v(A * b);
+    std::cout << A;// << std::endl <<  A*A0 << std::endl << A0*v << std::endl << b << std::endl << std::endl;
+    //Vector r(b-A*v);
+    //std::cout << residual_vector(A,b,v);
 
 
     return b;

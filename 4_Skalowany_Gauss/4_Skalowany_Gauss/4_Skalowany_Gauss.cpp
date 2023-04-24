@@ -29,7 +29,7 @@ int main()
 
     // wczytywanie danych
     // cin >> n;
-    Matrix a {{1.,2.},{4.,2.}};
+    Matrix a {{1.,2.25},{4.,1.}};
     Vector b {1.,2.};
     //cin >> a >> b >> eps;
 
