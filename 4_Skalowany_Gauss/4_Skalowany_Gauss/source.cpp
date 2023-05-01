@@ -1,9 +1,6 @@
 // Szymon Ciula
-#include "vectalg.h"
 #include "source.h"
-
-//inline double abso(double x) { return x>=0 ? x : -x; }
-//inline double max(double a, double b) { return a>=b ? a : b; }
+#include "vectalg.h"
 
 void swap(double& a, double& b)
 {
@@ -12,138 +9,81 @@ void swap(double& a, double& b)
     b = temp;
 }
 
-Vector operator*(const Matrix& M, const Vector& V)
+Vector& operator+=(Vector& a, const Vector& b)
 {
-    Vector R(V.size());
-
-    for (size_t i = 0; i < V.size(); ++i)
-    {
-        R[i] = M(i,0)*V[0];
-        for(size_t j = 1; j < V.size(); ++j)
-            R[i] += M(i,j)*V[j];
-    }
-
-    return R;
-}
-
-Matrix operator*(const Matrix& M, const Matrix& V)
-{
-    Matrix R(V.size());
-
-    for (size_t i = 0; i < V.size(); ++i)
-    {
-        for (size_t j = 0; j < V.size(); ++j)
-        {
-            R(i,j) = M(i, 0) * V(0,j);
-            for (size_t k = 1; k < V.size(); ++k)
-                 R(i, j) += M(i, k) * V(k,j);
-        }
-    }
-
-    return R;
-}
-
-void reverseTriangularUpMatrix(Matrix& M, size_t n)
-{
-    for (size_t i = 0; i < n; ++i)
-        M(i,i) = 1/M(i,i);
-    for (size_t i = 0; i < n; ++i)
-    {
-        for (size_t j = i+1; j < n; ++j)
-        {
-            M(i,j) = M(i,j)*M(i,i);
-            for(size_t k = i+1; k < j; ++k)
-                M(i,j) += M(k,j)*M(i,k);
-            M(i,j) *= -M(j,j);
-        }
-    }
-}
-
-void reverseTriangularLowMatrix(Matrix& M, size_t n)
-{
-    for (size_t i = 0; i < n; ++i)
-        M(i,i) = 1/M(i,i);
-    for (size_t i = 0; i < n; ++i)
-    {
-        for (size_t j = i+1; j < n; ++j)
-        {
-            M(i,j) = M(i,j)*M(j,j);
-            for(size_t k = j+1; k < i; ++k)
-                M(i,j) += M(k,j)*M(i,k);
-            M(i,j) *= -M(i,i);
-        }
-    }
-}
-
-Vector operator-(const Vector& a, const Vector& b)
-{
-    Vector v(a.size());
     for(size_t i=0; i<a.size(); ++i)
-        v[i] = a[i]-b[i];
-    return v;
+        a[i] += b[i];
+    return a;
 }
 
-Vector solveEquations(const Matrix & A0, const Vector & b, double  eps)
+Vector solveEquations(const Matrix& A0, const Vector& b, double  eps)
 {
     const size_t N = b.size();
-    Matrix A = A0;
-    Vector S(N);
+    Matrix A(A0);
+    Vector S(N), scales(N);
+    Vector B(b);
+    Vector X(N);
 
-    // Obliczamy norme kazdego wiersza.
-    double maxx;
+    for(size_t i=0; i<N; ++i)
+        X[i] = 0;
+
+    double temp; // zmienna pomocnicza
+    size_t idx; // Zmienna potrzebna do zamiany kolumn przy wyborze elementu glownego.
+
+    // Obliczamy norme maksimum kazdego wiersza.
     for (size_t i = 0; i < N; ++i)
     {
-        maxx = A(i,0);
-        for (size_t j = 1; j < N; ++j)
-            maxx = max(A(i,j), maxx);
-        S[i] = maxx;
+        temp = 0;
+        for (size_t j = 0; j < N; ++j)
+            temp = max(abso(A0(i, j)), abso(temp));
+        scales[i] = temp;
     }
 
-    
-    size_t idx;
-    short sign = 1;
-    double a;
-    for (size_t i = 0; i < N; ++i)
+    do
     {
-        // Wybieramy element glowny.
-        idx = i;
-        maxx = A(i,i)/S[i];
-        for (size_t k = i+1; k < N; ++k)
+        S = scales;
+        A = A0;
+        // Algorytm Gaussa
+        for (size_t i = 0; i < N - 1; ++i)
         {
-            if (maxx < A(k, i) / S[k])
+            // Wybieramy element glowny.
+            idx = i;
+            for (size_t k = i + 1; k < N; ++k)
             {
-                maxx = A(k, i) / S[k];
-                idx = k;
+                if (abso(A(idx, i)) * S[k] < abso(A(k, i)) * S[idx])
+                    idx = k;
+            }
+            // Zamieniamy wiersze, aby usadowic element glowny w odpowiednim miejscu.
+            if (i != idx)
+            {
+                swap(S[i], S[idx]);
+                swap(B[i], B[idx]);
+                for (size_t k = i; k < N; ++k)
+                    swap(A(i, k), A(idx, k));
+            }
+            // Zerujemy kolumne pod elementem glownym podmacierzy.
+            for (size_t j = i + 1; j < N; ++j)
+            {
+                temp = A(j, i) / A(i, i);
+                A(j, i) = 0;
+                for (size_t k = i + 1; k < N; ++k)
+                    A(j, k) -= A(i, k) * temp;
+                B[j] -= B[i] * temp;
             }
         }
-        // Zamieniamy wiersze, aby usadowic element glowny w odpowiednim miejscu.
-        if (i != idx)
+
+        // Rozwiazujemy uklad rownan zadany przez macierz gornotrojkotna.
+        for (int i = N - 1; i >= 0; --i)
         {
-            sign *= -1;
-            swap(S[i],S[idx]);
-            for(size_t k = i; k < N; ++k)
-                swap(A(i,k), A(idx,k));
+            temp = 0;
+            for (int j = N - 1; j > i; --j)
+                temp += A(i, j) * B[j];
+            B[i] = (B[i] - temp) / A(i, i);
         }
-
-        for (size_t j = i+1; j < N; ++j)
-        {
-            a = A(j,i)/A(i,i);
-            A(j,i) = 0;
-            for (size_t k = i+1; k < N; ++k)
-                A(j,k) -= A(i,k)*a;
-        }
-    }
-
-    std::cout << A << std::endl;
-
-    reverseTriangularLowMatrix(A, N);
-    //Vector v(A * b);
-    std::cout << A;// << std::endl <<  A*A0 << std::endl << A0*v << std::endl << b << std::endl << std::endl;
-    //Vector r(b-A*v);
-    //std::cout << residual_vector(A,b,v);
+        X += B;
+    } while ((B = residual_vector(A0, b, X)).max_norm()  >=  eps);
 
 
-    return b;
+    return X;
 }
-
 
